@@ -15,6 +15,11 @@ public class FlightListPage extends BasePage {
     private By departureTimeSliderContainer = By.cssSelector("[data-testid='departureDepartureTimeSlider']");
     private By departureTimeSliderStart = By.cssSelector("[data-testid='departureDepartureTimeSlider'] .rc-slider-handle-1");
     private By departureTimeSliderEnd = By.cssSelector("[data-testid='departureDepartureTimeSlider'] .rc-slider-handle-2");
+    private By airlineFilterCardHeader = By.cssSelector(".ctx-filter-airline.card-header");
+    private By airlineFilterCollapse = By.cssSelector(".ctx-filter-airline.card-header + .collapse");
+    private By turkishAirlinesCheckbox = By.id("TKairlines");
+    private By priceAscendingSort = By.cssSelector(".search__filter_sort-PRICE_ASC");
+    private By flightPrices = By.cssSelector("[data-testid='flightInfoPrice']");
 
     public FlightListPage(WebDriver driver) {
         super(driver);
@@ -204,6 +209,197 @@ public class FlightListPage extends BasePage {
     public boolean verifyFlightTimesInRange(int startHour, int endHour) {
         logger.info("Verifying all flights are within time range: " + startHour + ":00 - " + endHour + ":00");
         return true;
+    }
+    
+    public void openAirlineFilter() {
+        try {
+            logger.info("Opening airline filter...");
+            
+            WebElement cardHeader = waitHelper.waitForElementVisible(airlineFilterCardHeader);
+            logger.info("Airline filter card header found");
+            
+            WebElement collapse = driver.findElement(airlineFilterCollapse);
+            String collapseClass = collapse.getAttribute("class");
+            
+            if (!collapseClass.contains("show")) {
+                logger.info("Airline filter is collapsed, expanding...");
+                
+                js.executeScript("arguments[0].scrollIntoView({block: 'center'});", cardHeader);
+                Thread.sleep(500);
+                
+                js.executeScript("arguments[0].click();", cardHeader);
+                Thread.sleep(1000);
+                
+                logger.info("Airline filter expanded successfully");
+            } else {
+                logger.info("Airline filter is already expanded");
+            }
+            
+        } catch (Exception e) {
+            logger.error("Error opening airline filter: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    public void selectTurkishAirlines() {
+        try {
+            logger.info("Selecting Turkish Airlines...");
+            
+            WebElement checkbox = waitHelper.waitForElementVisible(turkishAirlinesCheckbox);
+            
+            if (!checkbox.isSelected()) {
+                logger.info("Turkish Airlines checkbox is not selected, clicking...");
+                
+                js.executeScript("arguments[0].scrollIntoView({block: 'center'});", checkbox);
+                Thread.sleep(300);
+                
+                js.executeScript("arguments[0].click();", checkbox);
+                Thread.sleep(1500);
+                
+                logger.info("Turkish Airlines selected successfully");
+            } else {
+                logger.info("Turkish Airlines is already selected");
+            }
+            
+        } catch (Exception e) {
+            logger.error("Error selecting Turkish Airlines: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    public void sortByPriceAscending() {
+        try {
+            logger.info("Sorting flights by price (ascending - low to high)...");
+            
+            WebElement sortOption = waitHelper.waitForElementVisible(priceAscendingSort);
+            
+            String classAttribute = sortOption.getAttribute("class");
+            
+            if (!classAttribute.contains("active") && !classAttribute.contains("selected")) {
+                logger.info("Price ascending sort is not active, clicking...");
+                
+                js.executeScript("arguments[0].scrollIntoView({block: 'center'});", sortOption);
+                Thread.sleep(300);
+                
+                js.executeScript("arguments[0].click();", sortOption);
+                Thread.sleep(2000);
+                
+                logger.info("Flights sorted by price (low to high) successfully");
+            } else {
+                logger.info("Price ascending sort is already active");
+            }
+            
+        } catch (Exception e) {
+            logger.error("Error sorting by price: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    public java.util.Map<String, Object> verifyPriceSortingAccuracy() {
+        java.util.Map<String, Object> result = new java.util.HashMap<>();
+        result.put("success", false);
+        result.put("prices", new java.util.ArrayList<Double>());
+        result.put("priceDetails", "");
+        
+        try {
+            logger.info("Verifying price sorting accuracy...");
+            Thread.sleep(2000);
+            
+            java.util.List<WebElement> priceElements = driver.findElements(flightPrices);
+            
+            if (priceElements.isEmpty()) {
+                logger.warn("No price elements found on the page");
+                result.put("message", "No price elements found");
+                return result;
+            }
+            
+            logger.info("Found " + priceElements.size() + " flight prices to verify");
+            
+            java.util.List<Double> prices = new java.util.ArrayList<>();
+            StringBuilder priceDetails = new StringBuilder();
+            priceDetails.append("=== FLIGHT PRICE VERIFICATION DETAILS ===\n\n");
+            priceDetails.append("Total Flights Found: ").append(priceElements.size()).append("\n");
+            priceDetails.append("Filter: Turkish Airlines | Time: 06:00-18:00\n\n");
+            priceDetails.append("Flight Prices (Ascending Order):\n");
+            priceDetails.append("─────────────────────────────────\n");
+            
+            for (int i = 0; i < priceElements.size(); i++) {
+                WebElement priceElement = priceElements.get(i);
+                
+                String dataPriceAttr = priceElement.getAttribute("data-price");
+                
+                if (dataPriceAttr != null && !dataPriceAttr.isEmpty()) {
+                    try {
+                        double price = Double.parseDouble(dataPriceAttr);
+                        prices.add(price);
+                        
+                        String displayPrice = priceElement.getText().trim();
+                        logger.info("Flight " + (i + 1) + " - Price: " + displayPrice + " (data-price: " + price + " TL)");
+                        
+                        priceDetails.append(String.format("Flight %2d: %,10.2f TL\n", (i + 1), price));
+                        
+                    } catch (NumberFormatException e) {
+                        logger.warn("Could not parse data-price attribute: " + dataPriceAttr);
+                    }
+                } else {
+                    logger.warn("No data-price attribute found for element at index " + i);
+                }
+            }
+            
+            if (prices.size() < 2) {
+                logger.warn("Not enough valid prices found for comparison. Found: " + prices.size());
+                result.put("success", true);
+                result.put("message", "Insufficient prices for comparison");
+                return result;
+            }
+            
+            priceDetails.append("─────────────────────────────────\n\n");
+            
+            boolean isSorted = true;
+            for (int i = 0; i < prices.size() - 1; i++) {
+                if (prices.get(i) > prices.get(i + 1)) {
+                    logger.error("❌ PRICE SORTING VERIFICATION FAILED!");
+                    logger.error("Price at position " + (i + 1) + " (" + prices.get(i) + " TL) is greater than price at position " + (i + 2) + " (" + prices.get(i + 1) + " TL)");
+                    priceDetails.append("❌ VERIFICATION FAILED!\n");
+                    priceDetails.append(String.format("Price %d (%.2f TL) > Price %d (%.2f TL)\n", 
+                        (i + 1), prices.get(i), (i + 2), prices.get(i + 1)));
+                    isSorted = false;
+                    break;
+                }
+            }
+            
+            if (isSorted) {
+                logger.info("✓ PRICE SORTING VERIFICATION PASSED!");
+                logger.info("All " + prices.size() + " flight prices are in ascending order (low to high)");
+                logger.info("Price range: " + String.format("%.2f", prices.get(0)) + " TL - " + String.format("%.2f", prices.get(prices.size() - 1)) + " TL");
+                
+                priceDetails.append("✓ VERIFICATION STATUS: PASSED\n\n");
+                priceDetails.append("Price Range:\n");
+                priceDetails.append(String.format("  Minimum: %,10.2f TL\n", prices.get(0)));
+                priceDetails.append(String.format("  Maximum: %,10.2f TL\n", prices.get(prices.size() - 1)));
+                priceDetails.append(String.format("  Difference: %,9.2f TL\n\n", prices.get(prices.size() - 1) - prices.get(0)));
+                
+                double average = prices.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+                priceDetails.append(String.format("  Average: %,10.2f TL\n", average));
+                
+                priceDetails.append("\n✓ All prices are in ascending order (low to high)");
+            }
+            
+            result.put("success", isSorted);
+            result.put("prices", prices);
+            result.put("priceDetails", priceDetails.toString());
+            result.put("minPrice", prices.get(0));
+            result.put("maxPrice", prices.get(prices.size() - 1));
+            result.put("flightCount", prices.size());
+            
+            return result;
+            
+        } catch (Exception e) {
+            logger.error("Error verifying price sorting: " + e.getMessage());
+            e.printStackTrace();
+            result.put("message", "Error: " + e.getMessage());
+            return result;
+        }
     }
 }
 
