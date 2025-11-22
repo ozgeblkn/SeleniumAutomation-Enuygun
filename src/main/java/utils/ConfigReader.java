@@ -96,6 +96,22 @@ public class ConfigReader {
         return getMonthName(parts[1]) + " " + parts[2];
     }
 
+    public static String getOneWayDepartureDate() {
+        return properties.getProperty("oneWayDepartureDate");
+    }
+
+    public static String getFormattedOneWayDepartureDate() {
+        String date = properties.getProperty("oneWayDepartureDate");
+        String[] parts = date.split("\\.");
+        return parts[2] + "-" + parts[1] + "-" + parts[0];
+    }
+
+    public static String getOneWayDepartureMonthYear() {
+        String date = properties.getProperty("oneWayDepartureDate");
+        String[] parts = date.split("\\.");
+        return getMonthName(parts[1]) + " " + parts[2];
+    }
+
     private static String getMonthName(String month) {
         switch (month) {
             case "01": return "Ocak";

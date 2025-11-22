@@ -10,6 +10,9 @@ public class FlightListPage extends BasePage {
 
     private By cookieAcceptButton = By.id("onetrust-accept-btn-handler");
     private By filterAccordion = By.cssSelector(".filter-accordion");
+    private By transitFilterCardHeader = By.cssSelector(".ctx-filter-transit.card-header");
+    private By transitFilterCollapse = By.cssSelector(".ctx-filter-transit.card-header + .collapse");
+    private By directFlightCheckbox = By.id("0stopCount");
     private By timeFilterCardHeader = By.cssSelector(".ctx-filter-departure-return-time.card-header");
     private By timeFilterCollapse = By.cssSelector(".ctx-filter-departure-return-time.card-header + .collapse");
     private By departureTimeSliderContainer = By.cssSelector("[data-testid='departureDepartureTimeSlider']");
@@ -18,6 +21,11 @@ public class FlightListPage extends BasePage {
     private By airlineFilterCardHeader = By.cssSelector(".ctx-filter-airline.card-header");
     private By airlineFilterCollapse = By.cssSelector(".ctx-filter-airline.card-header + .collapse");
     private By turkishAirlinesCheckbox = By.id("TKairlines");
+    private By selectAllAirlinesButton = By.cssSelector(".search__filter_airlines-ALL.filter-grup__item");
+    private By airportFilterCardHeader = By.cssSelector(".ctx-filter-airports.card-header");
+    private By airportFilterCollapse = By.cssSelector(".ctx-filter-airports.card-header + .collapse");
+    private By sawAirportCheckbox = By.id("SAWairports");
+    private By istAirportCheckbox = By.id("ISTairports");
     private By priceAscendingSort = By.cssSelector(".search__filter_sort-PRICE_ASC");
     private By flightPrices = By.cssSelector("[data-testid='flightInfoPrice']");
 
@@ -211,6 +219,64 @@ public class FlightListPage extends BasePage {
         return true;
     }
     
+    public void openTransitFilter() {
+        try {
+            logger.info("Opening transit filter...");
+            
+            WebElement cardHeader = waitHelper.waitForElementVisible(transitFilterCardHeader);
+            logger.info("Transit filter card header found");
+            
+            WebElement collapse = driver.findElement(transitFilterCollapse);
+            String collapseClass = collapse.getAttribute("class");
+            
+            if (!collapseClass.contains("show")) {
+                logger.info("Transit filter is collapsed, expanding...");
+                
+                js.executeScript("arguments[0].scrollIntoView({block: 'center'});", cardHeader);
+                Thread.sleep(500);
+                
+                js.executeScript("arguments[0].click();", cardHeader);
+                Thread.sleep(1000);
+                
+                logger.info("Transit filter expanded successfully");
+            } else {
+                logger.info("Transit filter is already expanded");
+            }
+            
+        } catch (Exception e) {
+            logger.error("Error opening transit filter: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    public void selectDirectFlights() {
+        try {
+            logger.info("Selecting direct flights checkbox...");
+            
+            Thread.sleep(1000);
+            
+            WebElement checkbox = waitHelper.waitForElementClickable(directFlightCheckbox);
+            
+            if (!checkbox.isSelected()) {
+                logger.info("Direct flights checkbox is not selected, clicking...");
+                
+                js.executeScript("arguments[0].scrollIntoView({block: 'center'});", checkbox);
+                Thread.sleep(500);
+                
+                js.executeScript("arguments[0].click();", checkbox);
+                Thread.sleep(1500);
+                
+                logger.info("Direct flights checkbox selected successfully");
+            } else {
+                logger.info("Direct flights checkbox is already selected");
+            }
+            
+        } catch (Exception e) {
+            logger.error("Error selecting direct flights: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
     public void openAirlineFilter() {
         try {
             logger.info("Opening airline filter...");
@@ -263,6 +329,114 @@ public class FlightListPage extends BasePage {
             
         } catch (Exception e) {
             logger.error("Error selecting Turkish Airlines: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    public void selectAllAirlines() {
+        try {
+            logger.info("Selecting all airlines (Tümünü seç)...");
+            
+            Thread.sleep(1000);
+            
+            WebElement selectAllButton = waitHelper.waitForElementClickable(selectAllAirlinesButton);
+            
+            js.executeScript("arguments[0].scrollIntoView({block: 'center'});", selectAllButton);
+            Thread.sleep(500);
+            
+            js.executeScript("arguments[0].click();", selectAllButton);
+            Thread.sleep(1500);
+            
+            logger.info("All airlines selected successfully");
+            
+        } catch (Exception e) {
+            logger.error("Error selecting all airlines: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    public void openAirportFilter() {
+        try {
+            logger.info("Opening airport filter...");
+            
+            WebElement cardHeader = waitHelper.waitForElementVisible(airportFilterCardHeader);
+            logger.info("Airport filter card header found");
+            
+            WebElement collapse = driver.findElement(airportFilterCollapse);
+            String collapseClass = collapse.getAttribute("class");
+            
+            if (!collapseClass.contains("show")) {
+                logger.info("Airport filter is collapsed, expanding...");
+                
+                js.executeScript("arguments[0].scrollIntoView({block: 'center'});", cardHeader);
+                Thread.sleep(500);
+                
+                js.executeScript("arguments[0].click();", cardHeader);
+                Thread.sleep(1000);
+                
+                logger.info("Airport filter expanded successfully");
+            } else {
+                logger.info("Airport filter is already expanded");
+            }
+            
+        } catch (Exception e) {
+            logger.error("Error opening airport filter: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    public void selectSawAirport() {
+        try {
+            logger.info("Selecting SAW (Sabiha Gökçen) airport...");
+            
+            Thread.sleep(1000);
+            
+            WebElement checkbox = waitHelper.waitForElementClickable(sawAirportCheckbox);
+            
+            if (!checkbox.isSelected()) {
+                logger.info("SAW airport checkbox is not selected, clicking...");
+                
+                js.executeScript("arguments[0].scrollIntoView({block: 'center'});", checkbox);
+                Thread.sleep(500);
+                
+                js.executeScript("arguments[0].click();", checkbox);
+                Thread.sleep(1500);
+                
+                logger.info("SAW airport selected successfully");
+            } else {
+                logger.info("SAW airport is already selected");
+            }
+            
+        } catch (Exception e) {
+            logger.error("Error selecting SAW airport: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    public void selectIstAirport() {
+        try {
+            logger.info("Selecting IST (Istanbul) airport...");
+            
+            Thread.sleep(1000);
+            
+            WebElement checkbox = waitHelper.waitForElementClickable(istAirportCheckbox);
+            
+            if (!checkbox.isSelected()) {
+                logger.info("IST airport checkbox is not selected, clicking...");
+                
+                js.executeScript("arguments[0].scrollIntoView({block: 'center'});", checkbox);
+                Thread.sleep(500);
+                
+                js.executeScript("arguments[0].click();", checkbox);
+                Thread.sleep(1500);
+                
+                logger.info("IST airport selected successfully");
+            } else {
+                logger.info("IST airport is already selected");
+            }
+            
+        } catch (Exception e) {
+            logger.error("Error selecting IST airport: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -399,6 +573,18 @@ public class FlightListPage extends BasePage {
             e.printStackTrace();
             result.put("message", "Error: " + e.getMessage());
             return result;
+        }
+    }
+    
+    public void scrollToTop() {
+        try {
+            logger.info("Scrolling to top of the page...");
+            js.executeScript("window.scrollTo(0, 0);");
+            Thread.sleep(500);
+            logger.info("Scrolled to top successfully");
+        } catch (Exception e) {
+            logger.error("Error scrolling to top: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }

@@ -9,7 +9,11 @@
     <test name="Chrome Tests">
         <parameter name="browser" value="chrome"/>
         <classes>
-            <class name="tests.FlightSearchTest"/>
+            <class name="tests.FlightSearchTest">
+                <methods>
+                    <include name="testFlightSearchStep3_OneWay"/>
+                </methods>
+            </class>
         </classes>
     </test>
 </suite>

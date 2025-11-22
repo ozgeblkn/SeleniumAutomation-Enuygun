@@ -6,6 +6,8 @@ import org.openqa.selenium.WebDriver;
 
 public class HomePage extends BasePage {
 
+    private By oneWayRadioButton = By.cssSelector("[data-testid='search-one-way-label']");
+    private By roundTripRadioButton = By.cssSelector("[data-testid='search-round-trip-label']");
     private By cheapFlightCheckbox = By.cssSelector("[data-testid='flight-oneWayCheckbox-checked-label']");
     
     private By originInputButton = By.cssSelector("[data-testid='flight-origin-input-comp']");
@@ -192,6 +194,28 @@ public class HomePage extends BasePage {
         } catch (Exception e) {
             logger.error("Error checking target month: " + e.getMessage());
             return false;
+        }
+    }
+    
+    public void selectOneWayTrip() {
+        try {
+            logger.info("Selecting one-way trip...");
+            
+            waitHelper.waitForElementVisible(oneWayRadioButton);
+            Thread.sleep(500);
+            
+            js.executeScript("arguments[0].scrollIntoView({block: 'center'});", 
+                driver.findElement(oneWayRadioButton));
+            Thread.sleep(300);
+            
+            js.executeScript("arguments[0].click();", driver.findElement(oneWayRadioButton));
+            Thread.sleep(1000);
+            
+            logger.info("One-way trip selected successfully");
+            
+        } catch (Exception e) {
+            logger.error("Error selecting one-way trip: " + e.getMessage());
+            e.printStackTrace();
         }
     }
     
